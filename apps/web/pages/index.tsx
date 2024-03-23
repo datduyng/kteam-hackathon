@@ -158,7 +158,7 @@ export const LearnCarousel = ({
           </div>
         )}
         <Carousel
-          setApi={setApi} className="w-56 w-full max-w-xs">
+          setApi={setApi} className="w-full max-w-xs">
           <CarouselContent>
             {carouselItems.map((item, index) => (
               <CarouselItem key={item.id}>
