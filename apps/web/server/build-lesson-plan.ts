@@ -165,13 +165,16 @@ export const getBookRecommendation = async (input: {
       description: "The book recommendations to use for the user"
     }).array(),
     keyPointsOfBooks: z.string({
-      description: "Key points of listed books. Each key points should be a single sentence and concise"
+      description: "Key points of listed books. Each key points should be a single sentence and concise. This should be personalized and relevant to the user's interests"
     }).array(),
+    userLearningGuide: z.string({
+      description: "Provide the user learning guide for his/her interest based on the input"
+    }),
   });
   const bookRecommendEngine = createOpenAIFnRunnable({
     functions: [
       {
-        name: "set_book_recommendations",
+        name: "set_book_recommendations_with_key_points",
         description: "Set the book recommendations for a user",
         parameters: zodToJsonSchema(setBookRecommendationSchema),
       }
@@ -183,6 +186,10 @@ export const getBookRecommendation = async (input: {
   - The user's reading history and preferences, if available
   - Current trends and popular books in the requested genres
   - The books should be engaging and thought-provoking
+  - Provide 2 key points of all the books recommended. Each key point should be a single sentence and concise.
+  - Make sure each key point is personalized and relevant to the user's interests
+  - Key point should be summarize learning of all recommended books and not just a summary of the book. Nothing should be specific about the book's author or title.
+  - Provide the user learning guide for his/her interest based on the input
   - Provide a brief description of why each book is recommended`],
       ['user', 'Based on my interest in {input}\n\nProvide recommendations below in json function']
     ]),
@@ -200,6 +207,7 @@ export const getBookRecommendation = async (input: {
       if (retryResponse.cause !== "error") {
         const bookRecommendations = (retryResponse as any).bookRecommendations || [];
         const keyPointsOfBooks = (retryResponse as any).keyPointsOfBooks || [];
+        const userLearningGuide = (retryResponse as any).userLearningGuide || [];
         if (bookRecommendations.length) {
           const bookImages: any = {};
           const imageSearchPromises = bookRecommendations.map((book: any) =>
@@ -217,6 +225,7 @@ export const getBookRecommendation = async (input: {
             bookRecommendations,
             keyPointsOfBooks,
             bookImages,
+            userLearningGuide,
           };
         }
       } else {

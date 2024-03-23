@@ -13,7 +13,7 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import { LearnCarouselItem } from "@/types/LearnCarouselItem";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import MarkdownRender from "@/components/markdown-render"
 import Image from "next/image";
 import { WebSearchImage } from "@/types/WebSearchImage";
@@ -23,6 +23,7 @@ const form = z.object({
   learnTopic: z.string().nonempty(),
 })
 type BoookRecommendation = {
+  userLearningGuide: string;
   bookRecommendations?: string[];
   keyPointsOfBooks?: string[];
   bookImages?: {
@@ -113,6 +114,7 @@ export default function LearnPage() {
           }}
         />
         <BookRecommendationSection
+          isLoading={isLoading}
           onBookClick={(book) => {
             console.log('clicked book:', book);
             if (!isLoading) {
@@ -132,30 +134,53 @@ export default function LearnPage() {
 export const BookRecommendationSection = ({
   bookRecommendations,
   onBookClick,
+  isLoading,
 }: {
   bookRecommendations?: BoookRecommendation
   onBookClick: (book: string) => void;
+  isLoading?: boolean;
 }) => {
   return (
-    <div className="grid grid-cols-3 gap-4">
-      {bookRecommendations?.bookRecommendations?.length && bookRecommendations.bookRecommendations.map((book) => (
-        <div
-          key={book}
-          className="flex flex-col items-center cursor-pointer hover:opacity-75"
-          onClick={() => {
-            onBookClick(book)
-          }}>
-          <Image
-            src={bookRecommendations?.bookImages?.[book]?.contentUrl || "https://via.placeholder.com/150"}
-            alt={`Cover of ${book}`}
-            width={bookRecommendations?.bookImages?.[book]?.width || 150}
-            height={bookRecommendations?.bookImages?.[book]?.height || 150}
-            className="transition-opacity duration-300 ease-in-out"
-          />
-          {/* <h3>{book}</h3> */}
-        </div>
-      ))}
-    </div>
+    <section>
+      <div className="grid grid-cols-3 gap-4">
+        {bookRecommendations?.bookRecommendations?.length && bookRecommendations.bookRecommendations.map((book) => (
+          <div
+            key={book}
+            className="flex flex-col items-center cursor-pointer hover:opacity-75"
+            onClick={() => {
+              if (isLoading) return;
+              onBookClick(book)
+            }}>
+            <Image
+              src={bookRecommendations?.bookImages?.[book]?.contentUrl || "https://via.placeholder.com/150"}
+              alt={`Cover of ${book}`}
+              width={bookRecommendations?.bookImages?.[book]?.width || 150}
+              height={bookRecommendations?.bookImages?.[book]?.height || 150}
+              className="transition-opacity duration-300 ease-in-out"
+            />
+            {/* <h3>{book}</h3> */}
+          </div>
+        ))}
+      </div>
+      {bookRecommendations?.userLearningGuide && <Card className="mt-4">
+        <CardHeader className="mt-8 text-2xl font-semibold tracking-tight scroll-m-20">
+          Your Learning Guide
+        </CardHeader>
+        <CardContent className="">
+          {bookRecommendations?.userLearningGuide}
+        </CardContent>
+      </Card>}
+      {bookRecommendations?.keyPointsOfBooks?.length && <Card className="mt-5">
+        <CardHeader className="mt-8 text-2xl font-semibold tracking-tight scroll-m-20">
+          Personalized Key Learning Points
+        </CardHeader>
+        <CardContent className="">
+          {bookRecommendations?.keyPointsOfBooks?.slice(0, 3)?.map((point, index) => (
+            <p key={index}>{point}</p>
+          ))}
+        </CardContent>
+      </Card>}
+    </section>
   );
 }
 
@@ -372,7 +397,13 @@ function SearchBar({
                   <input type="text" value={answers[question] || ''} onChange={(e) => handleAnswerChange(question, e.target.value)} className="px-4 py-2 w-full bg-gray-700 rounded" />
                 </div>
               ))}
-              <button onClick={handleSubmitAll} className="px-4 py-2 mt-4 text-white bg-blue-500 rounded">Submit All</button>
+              <button
+                disabled={isLoading}
+                onClick={handleSubmitAll} className="px-4 py-2 mt-4 text-white bg-blue-500 rounded">
+                {
+                  isLoading ? <Loading /> : "Submit All"
+                }
+              </button>
             </div>
           )}
         </section>
