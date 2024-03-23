@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "scripts": {
+    "vercel-install": "pnpx vercel-submodules --fg-token $GITHUB_PRIVATE_TOKEN #Expired on Sat, Nov 23 2024.",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "eslint": "^8.48.0",
+    "next": "^13.4.19",
+    "prettier": "^3.0.3",
+    "tsconfig": "workspace:*",
+    "turbo": "latest"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "name": "stateofdev"
+}
