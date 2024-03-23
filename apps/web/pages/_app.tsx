@@ -12,6 +12,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return <>
     <CopilotKit url="/api/copilotkit/openai">
       <CopilotSidebar
+        defaultOpen={true}
         labels={{
           title: "You are a book recommender expert. Helping student learn things faster",
           initial: "Hi! 👋 How can I assist you today?",
