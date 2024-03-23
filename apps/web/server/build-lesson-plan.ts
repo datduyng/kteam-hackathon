@@ -124,6 +124,7 @@ export const getRecommendedQuestions = async (query: string) => {
       baseURL: "https://text.octoai.run/v1",
       apiKey: process.env.OCTOAI_API_KEY,
     },
+    cache,
     temperature: 0.4,
     modelName: 'nous-hermes-2-mixtral-8x7b-dpo',
   }) : openaiModel;
@@ -153,3 +154,78 @@ Please provide 1-2 questions that you can ask the user based on the input: ${que
 
   return questions;
 }
+
+
+export const getBookRecommendation = async (input: {
+  query: string,
+  answers: any[],
+}) => {
+  const setBookRecommendationSchema = z.object({
+    bookRecommendations: z.string({
+      description: "The book recommendations to use for the user"
+    }).array(),
+    keyPointsOfBooks: z.string({
+      description: "Key points of listed books. Each key points should be a single sentence and concise"
+    }).array(),
+  });
+  const bookRecommendEngine = createOpenAIFnRunnable({
+    functions: [
+      {
+        name: "set_book_recommendations",
+        description: "Set the book recommendations for a user",
+        parameters: zodToJsonSchema(setBookRecommendationSchema),
+      }
+    ],
+    llm: model,
+    prompt: ChatPromptTemplate.fromMessages([
+      ['assistant', `You are an intelligent book recommendation engine. Your task is to suggest books based on user preferences and inputs. Consider the following while making recommendations:
+  - The genre and themes the user is interested in
+  - The user's reading history and preferences, if available
+  - Current trends and popular books in the requested genres
+  - The books should be engaging and thought-provoking
+  - Provide a brief description of why each book is recommended`],
+      ['user', 'Based on my interest in {input}\n\nProvide recommendations below in json function']
+    ]),
+    enforceSingleFunctionUsage: false, // Default is true
+    outputParser: new JsonOutputFunctionsParser(),
+  });
+
+  try {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      console.info(`Retrying book recommendation engine, attempt ${attempt + 1}`);
+      const retryResponse = await bookRecommendEngine.invoke({
+        input: `${input.query}\n${Object.entries(input.answers).map(([key, value]) => `${key}: ${value}`).join('\n')}`,
+      });
+
+      if (retryResponse.cause !== "error") {
+        const bookRecommendations = (retryResponse as any).bookRecommendations || [];
+        const keyPointsOfBooks = (retryResponse as any).keyPointsOfBooks || [];
+        if (bookRecommendations.length) {
+          const bookImages: any = {};
+          const imageSearchPromises = bookRecommendations.map((book: any) =>
+            imageSearch(`${book} book`).then(images => {
+              bookImages[book] = images?.[0];
+            }).catch(e => {
+              console.error("Failed to fetch image search results for outline", e, book)
+            })
+          );
+
+          await Promise.all(imageSearchPromises);
+
+          console.info('Book recommendations received on retry', bookRecommendations);
+          return {
+            bookRecommendations,
+            keyPointsOfBooks,
+            bookImages,
+          };
+        }
+      } else {
+        console.error(`Retry attempt ${attempt + 1} failed with message: ${retryResponse.message}`);
+      }
+    }
+    throw new Error("Failed to obtain book recommendations after 2 retries.");
+  } catch (error) {
+    console.error("Failed to run book recommendation engine", error);
+    throw error;
+  }
+};

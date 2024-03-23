@@ -1,7 +1,6 @@
 
 "use client"
 
-import AutoForm, { AutoFormSubmit } from "@/components/ui/auto-form"
 import { Loading } from "@/components/ui/loading";
 import { z } from "zod";
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -17,13 +16,54 @@ import { LearnCarouselItem } from "@/types/LearnCarouselItem";
 import { Card, CardContent } from "@/components/ui/card";
 import MarkdownRender from "@/components/markdown-render"
 import Image from "next/image";
+import { WebSearchImage } from "@/types/WebSearchImage";
+import { toast } from "@/components/ui/use-toast";
 
 const form = z.object({
   learnTopic: z.string().nonempty(),
 })
+type BoookRecommendation = {
+  bookRecommendations?: string[];
+  keyPointsOfBooks?: string[];
+  bookImages?: {
+    [key: string]: WebSearchImage;
+  };
+};
+
 export default function LearnPage() {
   const [carouselItems, setCarouselItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [recommendedBooks, setRecommendedBooks] = useState<BoookRecommendation>({});
+
+  const fetchRecommendedBooks = async (input: {
+    query: string;
+    answers: Record<string, string>;
+  }) => {
+    setIsLoading(true);
+    toast({
+      title: "Fetching recommended books",
+      duration: 3000,
+    })
+    try {
+      const response = await fetch(`/api/get-recommended-books`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch carousel items');
+      }
+      const data = await response.json();
+      setRecommendedBooks(data.response);
+    } catch (error) {
+      console.error('Failed to fetch carousel items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchCarouselItems = async (input: {
     query: string;
@@ -31,6 +71,10 @@ export default function LearnPage() {
   }) => {
     setIsLoading(true);
     try {
+      toast({
+        title: "Loading book details content...",
+        duration: 3000,
+      })
       const response = await fetch(`/api/build-lesson`, {
         method: 'POST',
         headers: {
@@ -61,12 +105,60 @@ export default function LearnPage() {
               void fetchCarouselItems(data);
             }
           }}
+          onBookSubmit={(data) => {
+            console.log('submit', data);
+            if (!isLoading) {
+              void fetchRecommendedBooks(data);
+            }
+          }}
         />
+        <BookRecommendationSection
+          onBookClick={(book) => {
+            console.log('clicked book:', book);
+            if (!isLoading) {
+              void fetchCarouselItems({
+                query: `${book} book`,
+                answers: {}
+              });
+            }
+          }}
+          bookRecommendations={recommendedBooks} />
         <LearnCarousel carouselItems={carouselItems} />
       </div>
     </main>
   </>
 }
+
+export const BookRecommendationSection = ({
+  bookRecommendations,
+  onBookClick,
+}: {
+  bookRecommendations?: BoookRecommendation
+  onBookClick: (book: string) => void;
+}) => {
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {bookRecommendations?.bookRecommendations?.length && bookRecommendations.bookRecommendations.map((book) => (
+        <div
+          key={book}
+          className="flex flex-col items-center cursor-pointer hover:opacity-75"
+          onClick={() => {
+            onBookClick(book)
+          }}>
+          <Image
+            src={bookRecommendations?.bookImages?.[book]?.contentUrl || "https://via.placeholder.com/150"}
+            alt={`Cover of ${book}`}
+            width={bookRecommendations?.bookImages?.[book]?.width || 150}
+            height={bookRecommendations?.bookImages?.[book]?.height || 150}
+            className="transition-opacity duration-300 ease-in-out"
+          />
+          {/* <h3>{book}</h3> */}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 
 export const LearnCarousel = ({
   carouselItems,
@@ -215,9 +307,11 @@ const LearnCarouselContent = ({
 
 function SearchBar({
   onSubmit,
+  onBookSubmit,
   isLoading,
 }: {
   onSubmit: (data: any) => void;
+  onBookSubmit: (data: any) => void;
   isLoading: boolean;
 }) {
   const [query, setQuery] = useState('');
@@ -239,7 +333,11 @@ function SearchBar({
 
   const handleSubmitAll = (e: any) => {
     e.preventDefault();
-    onSubmit({
+    // onSubmit({
+    //   query,
+    //   answers,
+    // });
+    onBookSubmit({
       query,
       answers,
     });
