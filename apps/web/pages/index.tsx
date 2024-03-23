@@ -3,7 +3,7 @@
 
 import { Loading } from "@/components/ui/loading";
 import { z } from "zod";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, use } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -18,6 +18,7 @@ import MarkdownRender from "@/components/markdown-render"
 import Image from "next/image";
 import { WebSearchImage } from "@/types/WebSearchImage";
 import { toast } from "@/components/ui/use-toast";
+import { useMakeCopilotReadable } from "@copilotkit/react-core";
 
 const form = z.object({
   learnTopic: z.string().nonempty(),
@@ -36,6 +37,24 @@ export default function LearnPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [recommendedBooks, setRecommendedBooks] = useState<BoookRecommendation>({});
+
+  const getCopilotrecommendedBooksContext = () => {
+    return {
+      userLearningGuide: recommendedBooks?.userLearningGuide || "",
+      bookRecommendations: recommendedBooks?.bookRecommendations || [],
+      keyPointsOfBooks: recommendedBooks?.keyPointsOfBooks || [],
+    } || {};
+  }
+  useMakeCopilotReadable(JSON.stringify(getCopilotrecommendedBooksContext()));
+  const getCopilotCarouselContext = () => {
+    return {
+      carouselItems: carouselItems.map((item: {
+        title: string;
+        content: string;
+      }) => item.content).join(", "),
+    } || {};
+  }
+  useMakeCopilotReadable(JSON.stringify(getCopilotCarouselContext()));
 
   const fetchRecommendedBooks = async (input: {
     query: string;

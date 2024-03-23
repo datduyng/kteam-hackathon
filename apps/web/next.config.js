@@ -7,6 +7,15 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  experimental: {
+    esmExternals: 'loose',
+  },
+  transpilePackages: [
+    "@copilotkit/react-core",
+    "@copilotkit/react-textarea",
+    "@copilotkit/react-ui",
+  ],
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
