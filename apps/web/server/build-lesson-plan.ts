@@ -23,15 +23,6 @@ const openaiModel = new ChatOpenAI({
   cache,
 });
 
-const octoAIModel = new ChatOpenAI({
-  configuration: {
-    baseURL: "https://text.octoai.run/v1",
-    apiKey: process.env.OCTOAI_API_KEY,
-  },
-  temperature: 0.2,
-  modelName: 'nous-hermes-2-mixtral-8x7b-dpo',
-});
-
 const model = openaiModel
 
 const slideOutlineSchema = z.object({
@@ -65,16 +56,20 @@ to create a presentation outlines on the topic given by following user input. Th
 - The presentation should have 4-7 slides
 - The presentation should be engaging and informative
 - The presentation should be visually appealing`],
-    ['user', 'Generate outlines based on user input: {input}']
+    ['user', 'Generate outlines based on user input along with some context about input: {input}.\n\nGenerate outlines below:']
   ]),
   enforceSingleFunctionUsage: false, // Default is true
   outputParser: new JsonOutputFunctionsParser(),
 });
 
-export const buildLessonPlan = async (query: string) => {
-  console.info('Building outlines for', query);
+export const buildLessonPlan = async (input: {
+  query: string,
+  answers: any[],
+}) => {
+  console.info('Building outlines for', input);
   const outlineResponse = await outlineEngine.invoke({
-    input: query
+    input: `${input.query}
+${Object.entries(input.answers).map(([key, value]) => `${key} ${value}`).join('\n')}`,
   });
   console.info('outlineResponse');
 
@@ -121,4 +116,40 @@ export const buildLessonPlan = async (query: string) => {
   } else {
     throw new Error("No outlines found");
   }
+}
+
+export const getRecommendedQuestions = async (query: string) => {
+  const octoAIModel = process.env.OCTOAI_API_KEY ? new ChatOpenAI({
+    configuration: {
+      baseURL: "https://text.octoai.run/v1",
+      apiKey: process.env.OCTOAI_API_KEY,
+    },
+    temperature: 0.4,
+    modelName: 'nous-hermes-2-mixtral-8x7b-dpo',
+  }) : openaiModel;
+  const response = await octoAIModel.invoke(`You are given a query from user. Your goal is to give list of question that I can ask more about the user to understand their need better. Only ask questions that are relevant to the user input and will provide more context for the user input.
+- Your questions should be open-ended and specific
+- Your questions should be respectful and professional
+- Your questions should be clear and concise
+- Your questions should be relevant to the user input
+- Provide bullet points of questions that you can ask the user based on the input. You can either provide 1-2 questions or more based on the input.
+- You must use bullet points to list the questions. Each question should be on a new line
+
+
+Example:
+input: I want to learn about public speaking
+output:
+- What is your goal with public speaking?
+- What is your experience with public speaking?
+
+Please provide 1-2 questions that you can ask the user based on the input: ${query}`);
+  const responseText = response.text?.trim();
+
+  if (!responseText) {
+    return [];
+  }
+
+  const questions = responseText.split('\n').map(question => question.trim()).filter(Boolean);
+
+  return questions;
 }

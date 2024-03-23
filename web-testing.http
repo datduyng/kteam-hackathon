@@ -1,3 +1,8 @@
 
-# Run Milvus Testing
+
+## User input
+GET http://localhost:4020/api/get-recommended-question?query=learn about public speaking
+
+
+## Run Milvus Testing
 GET http://localhost:4020/api/examples/milvus?query=where did the author go to college?

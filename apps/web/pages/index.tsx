@@ -1,3 +1,4 @@
+
 "use client"
 
 import AutoForm, { AutoFormSubmit } from "@/components/ui/auto-form"
@@ -24,11 +25,18 @@ export default function LearnPage() {
   const [carouselItems, setCarouselItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchCarouselItems = async (topic: string) => {
+  const fetchCarouselItems = async (input: {
+    query: string;
+    answers: Record<string, string>;
+  }) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/build-lesson?query=${encodeURIComponent(topic)}`, {
-        method: 'GET',
+      const response = await fetch(`/api/build-lesson`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
       });
       if (!response.ok) {
         throw new Error('Failed to fetch carousel items');
@@ -45,20 +53,15 @@ export default function LearnPage() {
   return <>
     <main className="flex flex-col items-center">
       <div className="w-full max-w-xl">
-        <AutoForm
-          className="mt-4"
-          formSchema={form} onSubmit={(data) => {
+        <SearchBar
+          isLoading={isLoading}
+          onSubmit={(data) => {
             console.log('submit', data);
             if (!isLoading) {
-              void fetchCarouselItems(data.learnTopic);
+              void fetchCarouselItems(data);
             }
-          }}>
-          <AutoFormSubmit
-            // type="button"
-            disabled={isLoading}>
-            {isLoading ? <Loading /> : 'Learn'}
-          </AutoFormSubmit>
-        </AutoForm>
+          }}
+        />
         <LearnCarousel carouselItems={carouselItems} />
       </div>
     </main>
@@ -137,41 +140,43 @@ export const LearnCarousel = ({
   };
 
   return (
-    <div className="flex flex-col items-center">
-      {current === 1 && (
-        <button onClick={toggleAutoplay} className="px-4 py-2 mb-4 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">
-          {autoplay ? "Stop Autoplay" : "Start Autoplay"}
-        </button>
-      )}
-      {current > 1 && autoplay && (
-        <div className="flex mb-4 space-x-2">
-          <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700">
-            Stop
+    <>
+      <div className="flex flex-col items-center">
+        {current === 1 && (
+          <button onClick={toggleAutoplay} className="px-4 py-2 mb-4 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">
+            {autoplay ? "Stop Autoplay" : "Start Autoplay"}
           </button>
-          <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-700">
-            Reset
-          </button>
+        )}
+        {current > 1 && autoplay && (
+          <div className="flex mb-4 space-x-2">
+            <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700">
+              Stop
+            </button>
+            <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-700">
+              Reset
+            </button>
+          </div>
+        )}
+        <Carousel
+          setApi={setApi} className="w-56 w-full max-w-xs">
+          <CarouselContent>
+            {carouselItems.map((item, index) => (
+              <CarouselItem key={item.id}>
+                <LearnCarouselContent item={item} />
+                {index === current - 1 && audioRef.current && (
+                  <audio controls src={audioRef.current.src} className="mt-2" />
+                )}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+        <div className="py-2 text-sm text-center text-muted-foreground">
+          Slide {current} of {carouselItems?.length || 0}
         </div>
-      )}
-      <Carousel
-        setApi={setApi} className="w-full max-w-xs">
-        <CarouselContent>
-          {carouselItems.map((item, index) => (
-            <CarouselItem key={item.id}>
-              <LearnCarouselContent item={item} />
-              {index === current - 1 && audioRef.current && (
-                <audio controls src={audioRef.current.src} className="mt-2" />
-              )}
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
-      <div className="py-2 text-sm text-center text-muted-foreground">
-        Slide {current} of {carouselItems?.length || 0}
       </div>
-    </div>
+    </>
   );
 };
 
@@ -206,4 +211,74 @@ const LearnCarouselContent = ({
       {item.full_slide_content || ""}
     </MarkdownRender>
   </Card>
+}
+
+function SearchBar({
+  onSubmit,
+  isLoading,
+}: {
+  onSubmit: (data: any) => void;
+  isLoading: boolean;
+}) {
+  const [query, setQuery] = useState('');
+  const [extraQuestions, setExtraQuestions] = useState([]);
+  const [answers, setAnswers] = useState({});
+
+  const handleQuerySubmit = async (e) => {
+    e.preventDefault();
+    const response = await fetch(`/api/get-recommended-question?query=${encodeURIComponent(query)}`);
+    if (response.ok) {
+      const data = await response.json();
+      setExtraQuestions(data.response || []);
+    }
+  };
+
+  const handleAnswerChange = (question, answer) => {
+    setAnswers(prev => ({ ...prev, [question]: answer }));
+  };
+
+  const handleSubmitAll = (e: any) => {
+    e.preventDefault();
+    onSubmit({
+      query,
+      answers,
+    });
+  };
+
+  return (
+    <div className="flex flex-col justify-center items-center p-4 min-h-screen">
+      <main className="w-full max-w-3xl">
+        <form onSubmit={handleQuerySubmit} className="mb-8">
+          <h1 className="mb-6 text-4xl font-bold">Ask a question, get conclusions from research papers</h1>
+          <div className="flex overflow-hidden items-center text-gray-900 bg-white rounded shadow-lg">
+            <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} className="px-4 py-2 w-full" placeholder="What do you want to learn about?" />
+            <button
+              disabled={isLoading}
+              type="submit" className="flex justify-center items-center px-4 border-l">
+              {
+                isLoading ? <Loading /> : <svg className="w-6 h-6 text-gray-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                  <path d="M8 6h13M6 6h.01M14 6h.01M6 18h13M4 18h.01M12 18h.01M7 9h10M5 9h.01M9 9h.01M7 15h10M5 15h.01M9 15h.01"></path>
+                </svg>
+              }
+
+            </button>
+          </div>
+        </form>
+        <section id='extraQuestion'>
+          {extraQuestions.length > 0 && (
+            <div className="p-6 bg-gray-800 rounded-lg shadow-lg">
+              <h2 className="mb-4 text-lg font-semibold">Please provide more information:</h2>
+              {extraQuestions.map((question, index) => (
+                <div key={index} className="mb-4">
+                  <label className="block mb-2">{question}</label>
+                  <input type="text" value={answers[question] || ''} onChange={(e) => handleAnswerChange(question, e.target.value)} className="px-4 py-2 w-full bg-gray-700 rounded" />
+                </div>
+              ))}
+              <button onClick={handleSubmitAll} className="px-4 py-2 mt-4 text-white bg-blue-500 rounded">Submit All</button>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
 }
