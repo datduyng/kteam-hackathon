@@ -7,7 +7,7 @@ import { z } from "zod";
 import { imageSearch } from "./services/search";
 import { UpstashRedisCache } from "@langchain/community/caches/upstash_redis";
 
-const cache = process.env.UPSTASH_REDIS_REST_URL! 
+const cache = process.env.UPSTASH_REDIS_REST_URL!
   ? new UpstashRedisCache({ // use this to save openai money. DOM local testing only
     config: {
       url: process.env.UPSTASH_REDIS_REST_URL!,
@@ -15,13 +15,24 @@ const cache = process.env.UPSTASH_REDIS_REST_URL!
     },
   }) : true;
 
-const model = new ChatOpenAI({
+const openaiModel = new ChatOpenAI({
   modelName: "gpt-4-0125-preview",
   temperature: 0.2,
   openAIApiKey: process.env.OPENAI_API_KEY, // In Node.js defaults to process.env.OPENAI_API_KEY
   // verbose: true,
   cache,
 });
+
+const octoAIModel = new ChatOpenAI({
+  configuration: {
+    baseURL: "https://text.octoai.run/v1",
+    apiKey: process.env.OCTOAI_API_KEY,
+  },
+  temperature: 0.2,
+  modelName: 'nous-hermes-2-mixtral-8x7b-dpo',
+});
+
+const model = openaiModel
 
 const slideOutlineSchema = z.object({
   slide_outlines: z.object({

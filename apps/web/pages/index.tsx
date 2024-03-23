@@ -53,7 +53,9 @@ export default function LearnPage() {
               void fetchCarouselItems(data.learnTopic);
             }
           }}>
-          <AutoFormSubmit disabled={isLoading}>
+          <AutoFormSubmit
+            // type="button"
+            disabled={isLoading}>
             {isLoading ? <Loading /> : 'Learn'}
           </AutoFormSubmit>
         </AutoForm>

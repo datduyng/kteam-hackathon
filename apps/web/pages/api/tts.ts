@@ -16,7 +16,7 @@ export default async function handleRequest(req: Request & { nextUrl?: URL }) {
     input: body.input,
     voice: 'shimmer',
     "response_format": "mp3",
-    speed: 1
+    speed: 1.5
   };
   const response = await fetch(`https://api.openai.com/v1/audio/speech`, {
     method: 'POST',

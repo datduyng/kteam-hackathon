@@ -650,8 +650,11 @@ function AutoForm<SchemaType extends ZodObjectOrWrapped>({
     <Form {...form}>
       <form
         onSubmit={(e) => {
+          console.log("submit", e);
           setDirty(false);
           void form.handleSubmit(onSubmit)(e);
+          e.preventDefault();
+          e.stopPropagation();
         }}
         onBlur={(e) => {
           if (onBlurSubmit && dirty) {
