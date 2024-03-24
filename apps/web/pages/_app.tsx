@@ -2,7 +2,7 @@ import { Toaster } from '@/components/ui/toaster'
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { CopilotKit } from "@copilotkit/react-core";
-import { CopilotPopup, CopilotSidebar } from "@copilotkit/react-ui";
+import { CopilotSidebar } from "@copilotkit/react-ui";
 import "@copilotkit/react-textarea/styles.css";
 import "@copilotkit/react-ui/styles.css"
 import { useMakeCopilotReadable } from "@copilotkit/react-core";

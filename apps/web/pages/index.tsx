@@ -275,7 +275,7 @@ export const LearnCarousel = ({
     setAutoplay(!autoplay);
   };
 
-  return (
+  return carouselItems.length && (
     <>
       <div className="flex flex-col items-center">
         {current === 1 && (
