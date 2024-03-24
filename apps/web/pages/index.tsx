@@ -286,7 +286,13 @@ export const LearnCarousel = ({
         )}
         {current > 1 && autoplay && (
           <div className="flex mb-4 space-x-2">
-            <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700">
+            <button onClick={() => {
+              if (audioRef.current && !audioRef.current.paused) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+              }
+              api?.scrollTo(0);
+            }} className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700">
               Stop
             </button>
             <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-700">
