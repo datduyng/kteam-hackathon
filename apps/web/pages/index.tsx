@@ -420,7 +420,7 @@ function SearchBar({
     <div className="flex flex-col justify-center items-center p-4 min-h-screen">
       <main className="w-full max-w-3xl">
         <form onSubmit={handleQuerySubmit} className="mb-8">
-          <h1 className="mb-6 text-4xl font-bold">Get personalized learning content from books</h1>
+          <h1 className="mb-6 text-4xl font-bold">Get Personalized Learning Content from Books</h1>
           <div className="flex overflow-hidden items-center text-gray-900 bg-white rounded shadow-lg">
             <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} className="px-4 py-2 w-full" placeholder="What do you want to learn about?" />
             <button
