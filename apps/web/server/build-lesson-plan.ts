@@ -190,6 +190,7 @@ export const getBookRecommendation = async (input: {
   - Make sure each key point is personalized and relevant to the user's interests
   - Key point should be summarize learning of all recommended books and not just a summary of the book. Nothing should be specific about the book's author or title.
   - Provide the user learning guide for his/her interest based on the input
+  - Provide 2-4 books based on the user's interest
   - Provide a brief description of why each book is recommended`],
       ['user', 'Based on my interest in {input}\n\nProvide recommendations below in json function']
     ]),
