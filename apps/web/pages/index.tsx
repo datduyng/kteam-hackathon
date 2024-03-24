@@ -47,7 +47,7 @@ export default function LearnPage() {
   useMakeCopilotReadable("Recommended Books for user based on input: " + JSON.stringify(getCopilotrecommendedBooksContext()));
   const getCopilotCarouselContext = () => {
     return {
-      carouselItems: carouselItems.map((item: {
+      learningContentSlides: carouselItems.map((item: {
         title: string;
         content: string;
       }) => item.content).join(", "),
