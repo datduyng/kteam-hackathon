@@ -12,6 +12,7 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "@/components/ui/carousel";
+import { event } from '@/lib/telemetry-client';
 import { LearnCarouselItem } from "@/types/LearnCarouselItem";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import MarkdownRender from "@/components/markdown-render"
@@ -21,9 +22,6 @@ import { toast } from "@/components/ui/use-toast";
 import { useMakeCopilotReadable } from "@copilotkit/react-core";
 import { LuSearch } from "react-icons/lu";
 
-const form = z.object({
-  learnTopic: z.string().nonempty(),
-})
 type BoookRecommendation = {
   userLearningGuide: string;
   bookRecommendations?: string[];
@@ -123,12 +121,22 @@ export default function LearnPage() {
           onSubmit={(data) => {
             console.log('submit', data);
             if (!isLoading) {
+              event('fetchcarouselitems', {
+                label: 'learn',
+                value: JSON.stringify(data),
+                category: 'learn',
+              });
               void fetchCarouselItems(data);
             }
           }}
           onBookSubmit={(data) => {
             console.log('submit', data);
             if (!isLoading) {
+              event('fetchRecommendedBooks', {
+                label: 'learn',
+                value: JSON.stringify(data),
+                category: 'learn',
+              });
               void fetchRecommendedBooks(data);
             }
           }}
@@ -138,6 +146,11 @@ export default function LearnPage() {
           onBookClick={(book) => {
             console.log('clicked book:', book);
             if (!isLoading) {
+              event('fetchcarouselitems', {
+                label: 'learn',
+                value: book,
+                category: 'learn',
+              });
               void fetchCarouselItems({
                 query: `${book} book`,
                 answers: {}
