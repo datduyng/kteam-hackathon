@@ -7,6 +7,7 @@ import "@copilotkit/react-textarea/styles.css";
 import "@copilotkit/react-ui/styles.css"
 import { useMakeCopilotReadable } from "@copilotkit/react-core";
 import { useInitTelemetry } from '@/lib/telemetry-client';
+import { ModalsProvider } from '@/components/modal-manager';
 
 function MyApp({ Component, pageProps }: AppProps) {
   useMakeCopilotReadable("You are helping Dominique to learn faster.");
@@ -30,7 +31,9 @@ function MyApp({ Component, pageProps }: AppProps) {
           initial: "Hi! 👋 Ask me any question about learning material on the left",
         }}
       >
-        <Component {...pageProps} />
+        <ModalsProvider>
+          <Component {...pageProps} />
+        </ModalsProvider>
       </CopilotSidebar>
     </CopilotKit>
     <Toaster />

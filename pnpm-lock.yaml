@@ -242,6 +242,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.3.3)
+      typeid-js:
+        specifier: ^0.5.0
+        version: 0.5.0
       typescript:
         specifier: 5.2.2
         version: 5.2.2
@@ -12239,6 +12242,12 @@ packages:
       is-typed-array: 1.1.13
       possible-typed-array-names: 1.0.0
 
+  /typeid-js@0.5.0:
+    resolution: {integrity: sha512-wgEWd5Ejd2gvb68y+5wWcjZmrJqPFX4rMV6Fi6CN5luzD9Wjaf9v1g3qfpGzaWahXcmlnA0cCPDP4Kr0F630xA==}
+    dependencies:
+      uuidv7: 0.6.3
+    dev: false
+
   /typescript@5.2.2:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
     engines: {node: '>=14.17'}
@@ -12469,6 +12478,11 @@ packages:
 
   /uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
+    dev: false
+
+  /uuidv7@0.6.3:
+    resolution: {integrity: sha512-zV3eW2NlXTsun/aJ7AixxZjH/byQcH/r3J99MI0dDEkU2cJIBJxhEWUHDTpOaLPRNhebPZoeHuykYREkI9HafA==}
     hasBin: true
     dev: false
 

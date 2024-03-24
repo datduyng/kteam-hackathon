@@ -21,6 +21,9 @@ import { WebSearchImage } from "@/types/WebSearchImage";
 import { toast } from "@/components/ui/use-toast";
 import { useMakeCopilotReadable } from "@copilotkit/react-core";
 import { LuSearch } from "react-icons/lu";
+import Head from "next/head";
+import { Button } from "@/components/ui/button";
+import { modals } from "@/components/modal-manager";
 
 type BoookRecommendation = {
   userLearningGuide: string;
@@ -432,6 +435,33 @@ function SearchBar({
 
             </button>
           </div>
+          <Button
+            type="button"
+            variant={'link'}
+            className="pl-0 text-xs text-gray-500 underline flex-start"
+            onClick={() => {
+              modals.openConfirmModal({
+                children: (<>
+                  <div style={{
+                    position: 'relative',
+                    paddingTop: '62.5%'
+                  }}>
+                    <iframe
+                      src="https://player.vimeo.com/video/926740918?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479"
+                      allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+                      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                      title="BrainBite Hackathon Demo" />
+                  </div>
+                </>),
+                labels: {
+                  confirm: "Ok",
+                  cancel: "Cancel",
+                },
+              })
+            }}
+          >
+            How it works?
+          </Button>
         </form>
         <section id='extraQuestion'>
           {extraQuestions.length > 0 && (
