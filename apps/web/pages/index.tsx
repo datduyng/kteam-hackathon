@@ -19,6 +19,7 @@ import Image from "next/image";
 import { WebSearchImage } from "@/types/WebSearchImage";
 import { toast } from "@/components/ui/use-toast";
 import { useMakeCopilotReadable } from "@copilotkit/react-core";
+import { LuSearch } from "react-icons/lu";
 
 const form = z.object({
   learnTopic: z.string().nonempty(),
@@ -398,9 +399,7 @@ function SearchBar({
               disabled={isLoading}
               type="submit" className="flex justify-center items-center px-4 border-l">
               {
-                isLoading ? <Loading /> : <svg className="w-6 h-6 text-gray-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                  <path d="M8 6h13M6 6h.01M14 6h.01M6 18h13M4 18h.01M12 18h.01M7 9h10M5 9h.01M9 9h.01M7 15h10M5 15h.01M9 15h.01"></path>
-                </svg>
+                isLoading ? <Loading /> : <LuSearch />
               }
 
             </button>
