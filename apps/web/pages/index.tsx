@@ -44,7 +44,7 @@ export default function LearnPage() {
       keyPointsOfBooks: recommendedBooks?.keyPointsOfBooks || [],
     } || {};
   }
-  useMakeCopilotReadable(JSON.stringify(getCopilotrecommendedBooksContext()));
+  useMakeCopilotReadable("Recommended Books for user based on input: " + JSON.stringify(getCopilotrecommendedBooksContext()));
   const getCopilotCarouselContext = () => {
     return {
       carouselItems: carouselItems.map((item: {
@@ -53,7 +53,7 @@ export default function LearnPage() {
       }) => item.content).join(", "),
     } || {};
   }
-  useMakeCopilotReadable(JSON.stringify(getCopilotCarouselContext()));
+  useMakeCopilotReadable("Recommended learning lesson based on input: " + JSON.stringify(getCopilotCarouselContext()));
 
   const fetchRecommendedBooks = async (input: {
     query: string;
@@ -389,8 +389,9 @@ function SearchBar({
   const [query, setQuery] = useState('');
   const [extraQuestions, setExtraQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
+  useMakeCopilotReadable("User input: " + JSON.stringify({ query, answers }));
 
-  const handleQuerySubmit = async (e) => {
+  const handleQuerySubmit = async (e: any) => {
     e.preventDefault();
     const response = await fetch(`/api/get-recommended-question?query=${encodeURIComponent(query)}`);
     if (response.ok) {
