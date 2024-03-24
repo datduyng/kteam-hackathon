@@ -239,6 +239,14 @@ export const LearnCarousel = ({
   }, [api]);
 
   useEffect(() => {
+    if (!autoplay) {
+      if (audioRef.current && !audioRef.current.paused) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      return;
+    }
+
     const speakCurrentItem = async () => {
       const currentItemText = carouselItems[current - 1]?.full_slide_content || carouselItems[current - 1]?.content;
       if (!currentItemText) return;
@@ -276,7 +284,7 @@ export const LearnCarousel = ({
     setAutoplay(!autoplay);
   };
 
-  return carouselItems.length && (
+  return carouselItems.length > 0 ? (
     <>
       <div className="flex flex-col items-center">
         {current === 1 && (
@@ -320,7 +328,7 @@ export const LearnCarousel = ({
         </div>
       </div>
     </>
-  );
+  ) : null;
 };
 
 const LearnCarouselContent = ({
