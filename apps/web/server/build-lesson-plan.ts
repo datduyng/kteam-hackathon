@@ -25,6 +25,12 @@ const openaiModel = new ChatOpenAI({
 
 const model = openaiModel
 
+const mindmapSchema = z.object({
+  mindmapLessonPlan: z.string({
+    description: "The mindmap lesson plan to use for the user"
+  })
+});
+
 const firstQuizSchema = z.object({
   questions: z.object({
     question: z.string(),
@@ -49,7 +55,47 @@ const slideOutlineSchema = z.object({
   }).array(),
 });
 
+
+const mindMapEngine = createOpenAIFnRunnable({
+  functions: [
+    {
+      name: "set_mindmap_lesson_plan",
+      description: "Set the mindmap lesson plan for a user",
+      parameters: zodToJsonSchema(mindmapSchema),
+    }
+  ],
+  llm: model,
+  prompt: ChatPromptTemplate.fromMessages([
+    ['assistant', `You are tasked with generating Markdown code to create mind maps in Mermaid. 
+You will take a list of topics and subtopics provided to you and return a well-structured Markdown block containing the Mermaid syntax to represent these topics visually.
+
+### Instructions:
+1. The mind map must have a clear hierarchical structure, with a root node and nested branches.
+2. Indentation and formatting must follow Mermaid's syntax rules for mind maps.
+3. Each node will consist of a topic name only.
+4. Don't include \`\`\`
+
+Example output mindmap:
+mindmap
+  root(Learning Paths)
+    Programming
+      Python
+      JavaScript
+    Design
+      UI/UX
+      Graphic Design
+`],
+    ['user', `Generate a mindmap given user quized answer below:
+{input}.
+
+Generate mindmap below:`]
+  ]),
+  enforceSingleFunctionUsage: false, // Default is true
+  outputParser: new JsonOutputFunctionsParser(),
+});
+
 const firstQuizEngine = createOpenAIFnRunnable({
+
   functions: [
     {
       name: "set_first_quiz",
@@ -91,6 +137,39 @@ to create a presentation outlines on the topic given by following user input. Th
   enforceSingleFunctionUsage: false, // Default is true
   outputParser: new JsonOutputFunctionsParser(),
 });
+
+export const buildMindMap = async (input: {
+  resolvedQa: string
+}) => {
+  const mindMapResposne = await model.invoke(`
+You are tasked with generating Markdown code to create mind maps in Mermaid. 
+You will take a list of topics and subtopics provided to you and return a well-structured Markdown block containing the Mermaid syntax to represent these topics visually.
+
+### Instructions:
+1. The mind map must have a clear hierarchical structure, with a root node and nested branches.
+2. Indentation and formatting must follow Mermaid's syntax rules for mind maps.
+3. Each node will consist of a topic name only.
+4. Don't include \`\`\`
+
+Example output mindmap:
+mindmap
+  root(Learning Paths)
+    Programming
+      Python
+      JavaScript
+    Design
+      UI/UX
+      Graphic Design
+
+Below is user input(from a personalized quiz. You are expected to generate a mindmap based on this input):
+${input.resolvedQa}
+
+Provide the mindmap lesson plan for the user based on the input below:    
+`)
+
+
+  return mindMapResposne.content;
+}
 
 export const buildFirstQuiz = async (input: {
   query: string,
