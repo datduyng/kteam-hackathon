@@ -215,6 +215,11 @@ export default function LearnPage() {
               onSubmitQuiz={(resolvedQA: string) => {
                 console.log('Resolved QA:', resolvedQA);
                 setSubmissions(submissions + 1)
+                toast({
+                  title: "Quiz submitted successfully!",
+                  duration: 3000,
+                })
+                setDialogShow(false)
               }}
               show={dialogShow}
               setShow={setDialogShow} />
