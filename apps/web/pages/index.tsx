@@ -33,14 +33,42 @@ mindmap
 
 
 `.trim();
+
+  const [firstQuestions, setFirstQuestions] = useState([]);
+  const [topicInput, setTopicInput] = useState('');
+
   return <>
     <main className="flex flex-col items-center">
       <div className="w-full max-w-5xl">
         {
           quizStep === 0 && <>
             <Label>What do you want to learn</Label>
-            <Input placeholder="Enter your name" />
+            <Input placeholder="Enter your name"
+              value={topicInput}
+              onChange={(e) => {
+                setTopicInput(e.target.value);
+              }}
+            />
             <Button onClick={() => {
+              toast({
+                title: "Personalizing your learning path...",
+                duration: 3000,
+              })
+              fetch(`/api/get-first-quiz?q=${topicInput}`)
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data.response) {
+                    setFirstQuestions(data.response);
+                    setQuizStep(1);
+                  }
+                })
+                .catch((err) => {
+                  console.error(err);
+                  toast({
+                    title: "Error when Personalizing your learning path...",
+                    duration: 3000,
+                  })
+                });
               setQuizStep(1);
             }}>Submit</Button>
           </>
@@ -53,10 +81,12 @@ mindmap
             }}>
               Back
             </Button>
-            <FirstQuiz onSubmit={() => {
-              setQuizStep(2);
-
-            }} />
+            <FirstQuiz
+              questions={firstQuestions}
+              onSubmit={(resolvedQA: string) => {
+                console.log('Resolved QA:', resolvedQA);
+                setQuizStep(2);
+              }} />
           </>
         }
 
@@ -71,7 +101,6 @@ mindmap
               content={content}
               onTopicClick={(newTopic) => {
                 setDialogShow(true);
-                console.log('new topic', newTopic);
                 setTopic(newTopic);
               }}
             />

@@ -25,6 +25,15 @@ const openaiModel = new ChatOpenAI({
 
 const model = openaiModel
 
+const firstQuizSchema = z.object({
+  questions: z.object({
+    question: z.string(),
+    answers: z.string({
+      description: "Full slide content to use for the slide. This will be used for the speaker notes, transcript, or full slide content"
+    }).array(),
+  }).array(),
+});
+
 const slideOutlineSchema = z.object({
   slide_outlines: z.object({
     title: z.string(),
@@ -38,6 +47,27 @@ const slideOutlineSchema = z.object({
       description: "Full slide content to use for the slide. This will be used for the speaker notes, transcript, or full slide content"
     }),
   }).array(),
+});
+
+const firstQuizEngine = createOpenAIFnRunnable({
+  functions: [
+    {
+      name: "set_first_quiz",
+      description: "Set the first quiz for a presentation",
+      parameters: zodToJsonSchema(firstQuizSchema),
+    }
+  ],
+  llm: model,
+  prompt: ChatPromptTemplate.fromMessages([
+    ['assistant', `You are a quiz generator engine. Generate a quiz based on the current topic and its sub-topics, considering the user's previous quiz performance.
+Ensure all key concepts are covered to reinforce understanding.
+- You should have 3-4 questions
+- Each question should have 4 multiple choice or single choice answers
+`],
+    ['user', 'Generate list of quiz to learn more about the user {input}.\n\nGenerate quiz questions below:']
+  ]),
+  enforceSingleFunctionUsage: false, // Default is true
+  outputParser: new JsonOutputFunctionsParser(),
 });
 
 const outlineEngine = createOpenAIFnRunnable({
@@ -62,6 +92,34 @@ to create a presentation outlines on the topic given by following user input. Th
   outputParser: new JsonOutputFunctionsParser(),
 });
 
+export const buildFirstQuiz = async (input: {
+  query: string,
+}) => {
+  const firstQuizResponse = await firstQuizEngine.invoke({
+    input: input.query,
+  })
+
+  if (firstQuizResponse.cause === "error") {
+    throw new Error(firstQuizResponse.message);
+
+  }
+
+  const quizQuestions: z.infer<typeof firstQuizSchema>['questions'] = (firstQuizResponse as any).questions || [];
+
+  if (quizQuestions.length) {
+    return quizQuestions;
+  }
+
+  return [{
+    question: "What is your background on this topic?",
+    answers: [
+      "A. I have no background on this topic",
+      "B. I have some background on this topic",
+      "C. I have a lot of background on this topic",
+      "D. I am an expert on this topic"
+    ],
+  }];
+}
 export const buildLessonPlan = async (input: {
   query: string,
   answers: any[],

@@ -13,7 +13,7 @@ interface QuizQuestion {
 
 interface QuizProps {
   questions: QuizQuestion[];
-  onSubmit?: () => void;
+  onSubmit?: (resolvedQA: string) => void;
 }
 
 export default function Quiz({ questions = [
@@ -43,7 +43,10 @@ export default function Quiz({ questions = [
   const handleSubmit = () => {
     console.log('Submitted answers:', selectedAnswers)
     if (onSubmit) {
-      onSubmit()
+      const resolvedQA = questions.map((q, index) => {
+        return `Question: ${q.question}\nAnswer: ${selectedAnswers[index] || "No answer selected"}`;
+      }).join('\n\n');
+      onSubmit(resolvedQA)
     }
     // Here you can add logic to check answers or send them to a server
   }
