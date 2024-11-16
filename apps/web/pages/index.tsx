@@ -35,6 +35,7 @@ mindmap
 `.trim();
 
   const [firstQuestions, setFirstQuestions] = useState([]);
+  const [quizQuestions, setQuizQuestions] = useState([]);
   const [topicInput, setTopicInput] = useState('');
 
   const [resolvedQA, setResolvedQA] = useState('');
@@ -63,6 +64,39 @@ mindmap
       }
       const data = await response.json();
       setCarouselItems(data.response);
+      return data.response;
+    } catch (error) {
+      console.error('Failed to fetch carousel items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchTopicQuiz = async (input: {
+    topic: string;
+    carouselItems: any;
+  }) => {
+    setIsLoading(true);
+    try {
+      toast({
+        title: "Loading topic quiz content...",
+        duration: 3000,
+      })
+      const prompt = `${input.topic} based on content ${JSON.stringify(input.carouselItems)}`;
+      const response = await fetch(`/api/get-first-quiz`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: prompt,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch carousel items');
+      }
+      const data = await response.json();
+      setQuizQuestions(data.response);
     } catch (error) {
       console.error('Failed to fetch carousel items:', error);
     } finally {
@@ -149,15 +183,25 @@ mindmap
             </Button>
             <MermaidWithPopup
               content={resolvedMindMap}
-              onTopicClick={async (newTopic) => {
+              onTopicClick={async (newTopic: string) => {
                 setDialogShow(true);
                 setTopic(newTopic);
                 setCarouselItems([]);
-                await fetchCarouselItems({ query: newTopic })
+                setQuizQuestions([]);
+                const carouselItems = await fetchCarouselItems({ query: newTopic })
+                await fetchTopicQuiz({ topic: newTopic, carouselItems });
               }}
             />
 
-            <TopicDialog carouselItems={carouselItems} topic={topic} show={dialogShow} setShow={setDialogShow} />
+            <TopicDialog
+              carouselItems={carouselItems}
+              quizQuestions={quizQuestions}
+              topic={topic}
+              refreshQuiz={() => {
+                fetchTopicQuiz({ topic, carouselItems }).then().catch(console.error);
+              }}
+              show={dialogShow}
+              setShow={setDialogShow} />
           </>
         }
 

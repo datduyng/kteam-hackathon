@@ -10,9 +10,13 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   try {
+    let q = req.query.q as string;
+    if (req.method === 'POST') {
+      q = req.body.q as string;
+    }
 
     const response = await buildFirstQuiz({
-      query: req.query.q as string,
+      query: q,
     })
     return res.status(200).json({
       response,

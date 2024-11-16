@@ -23,6 +23,7 @@ import { useMakeCopilotReadable } from "@copilotkit/react-core";
 import { LuSearch } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 import { modals } from "@/components/modal-manager";
+import { FaPlay, FaPause, FaRedo, FaStop } from "react-icons/fa";
 
 type BoookRecommendation = {
   userLearningGuide: string;
@@ -218,8 +219,6 @@ export const BookRecommendationSection = ({
     </section>
   );
 }
-
-
 export const LearnCarousel = ({
   carouselItems,
 }: {
@@ -275,9 +274,9 @@ export const LearnCarousel = ({
         const endpoint = `/api/tts`;
         const data = { input: currentItemText };
         const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
         });
 
         const audioBlob = await response.blob();
@@ -300,84 +299,95 @@ export const LearnCarousel = ({
   };
 
   return carouselItems.length > 0 ? (
-    <>
-      <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center space-y-4">
+      <div className="p-4 w-full max-w-3xl bg-gray-100 rounded-lg shadow-lg">
         {current === 1 && (
-          <button onClick={toggleAutoplay} className="px-4 py-2 mb-4 font-bold text-white bg-blue-500 rounded hover:bg-blue-700">
-            {autoplay ? "Stop Autoplay" : "Start Autoplay"}
+          <button
+            onClick={toggleAutoplay}
+            className="flex items-center px-4 py-2 mb-4 font-bold text-white bg-blue-500 rounded hover:bg-blue-700"
+          >
+            {autoplay ? <FaPause className="mr-2" /> : <FaPlay className="mr-2" />}
+            {autoplay ? "Pause Autoplay" : "Start Autoplay"}
           </button>
         )}
         {current > 1 && autoplay && (
-          <div className="flex mb-4 space-x-2">
-            <button onClick={() => {
-              if (audioRef.current && !audioRef.current.paused) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-              }
-              api?.scrollTo(0);
-            }} className="px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700">
+          <div className="flex justify-center mb-4 space-x-4">
+            <button
+              onClick={() => {
+                if (audioRef.current && !audioRef.current.paused) {
+                  audioRef.current.pause();
+                  audioRef.current.currentTime = 0;
+                }
+                api?.scrollTo(0);
+              }}
+              className="flex items-center px-4 py-2 font-bold text-white bg-red-500 rounded hover:bg-red-700"
+            >
+              <FaStop className="mr-2" />
               Stop
             </button>
-            <button onClick={() => api?.scrollTo(0)} className="px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-700">
+            <button
+              onClick={() => api?.scrollTo(0)}
+              className="flex items-center px-4 py-2 font-bold text-white bg-yellow-500 rounded hover:bg-yellow-700"
+            >
+              <FaRedo className="mr-2" />
               Reset
             </button>
           </div>
         )}
-        <Carousel
-          setApi={setApi} className="w-full max-w-xs">
+        <Carousel setApi={setApi} className="mx-auto w-full max-w-md">
           <CarouselContent>
             {carouselItems.map((item, index) => (
               <CarouselItem key={item.id}>
                 <LearnCarouselContent item={item} />
                 {index === current - 1 && audioRef.current && (
-                  <audio controls src={audioRef.current.src} className="mt-2" />
+                  <audio
+                    controls
+                    src={audioRef.current.src}
+                    className="mt-4 w-full rounded-lg"
+                  />
                 )}
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
+          <CarouselPrevious className="text-black" />
+          <CarouselNext className="text-black" />
         </Carousel>
         <div className="py-2 text-sm text-center text-muted-foreground">
           Slide {current} of {carouselItems?.length || 0}
         </div>
       </div>
-    </>
+    </div>
   ) : null;
 };
 
-const LearnCarouselContent = ({
-  item
-}: {
-  item: LearnCarouselItem
-}) => {
-  return <Card>
-    <CardContent className="aspect-square">
-      <h2 className="pb-2 mt-4 text-3xl font-semibold tracking-tight border-b transition-colors scroll-m-20">
-        {item.title}
-      </h2>
-      {/* <p className="leading-7 [&:not(:first-child)]:mt-6">
-      {item.content}
-    </p> */}
-      {/* @ts-ignore */}
-      <MarkdownRender>
-        {item.content || ""}
-      </MarkdownRender>
-      {
-        item.mainImage && (<Image
-          src={item.mainImage?.contentUrl || "/placeholder.jpg"}
-          alt={item.mainImage?.name || item.title}
-          width={item.mainImage?.width || 400}
-          height={item.mainImage?.height || 300}
-          className="object-cover rounded-lg"
-        />)
-      }
-    </CardContent>
-    <MarkdownRender>
-      {item.full_slide_content || ""}
-    </MarkdownRender>
-  </Card>
-}
+const LearnCarouselContent = ({ item }: { item: LearnCarouselItem }) => {
+  return (
+    <Card className="overflow-hidden text-black bg-white rounded-lg shadow-lg">
+      <CardContent className="aspect-square">
+        <h2 className="pb-2 mt-4 text-2xl font-semibold tracking-tight border-b">
+          {item.title}
+        </h2>
+        <div className="prose">
+          <MarkdownRender>{item.content || ""}</MarkdownRender>
+        </div>
+        {item.mainImage && (
+          <Image
+            src={item.mainImage?.contentUrl || "/placeholder.jpg"}
+            alt={item.mainImage?.name || item.title}
+            width={item.mainImage?.width || 400}
+            height={item.mainImage?.height || 300}
+            className="object-cover rounded-lg"
+          />
+        )}
+      </CardContent>
+      <div className="p-4">
+        <MarkdownRender>{item.full_slide_content || ""}</MarkdownRender>
+      </div>
+    </Card>
+  );
+};
+
+
 
 function SearchBar({
   onSubmit,

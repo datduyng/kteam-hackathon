@@ -11,17 +11,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LearnCarousel } from "@/pages/brainbite";
+import Quiz from "./quiz";
 
 export function TopicDialog({
+  refreshQuiz,
   show,
   setShow,
   topic,
   carouselItems,
+  quizQuestions,
 }: {
+  refreshQuiz: () => void
   topic: string;
   show: boolean
   setShow: (show: boolean) => void
   carouselItems: any
+  quizQuestions: any
 }) {
   console.log('dialog', topic)
   return (
@@ -31,15 +36,23 @@ export function TopicDialog({
       {/* <DialogTrigger asChild>
         <Button variant="outline">Edit Profile</Button>
       </DialogTrigger> */}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className=" max-w-4xl overflow-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{topic}</DialogTitle>
           <DialogDescription>
-            {topic}
-            Make changes to your profile here. Click save when you're done.
+            {/* {topic} */}
           </DialogDescription>
         </DialogHeader>
         <LearnCarousel carouselItems={carouselItems} />
+        <br />
+        {
+          quizQuestions && <>
+            <Button variant={"outline"} onClick={() => {
+              refreshQuiz();
+            }}>🔄 Refresh Quiz</Button>
+            <Quiz questions={quizQuestions} />
+          </>
+        }
         <DialogFooter>
           <Button type="submit">Save changes</Button>
         </DialogFooter>
