@@ -16,7 +16,7 @@ const cache = process.env.UPSTASH_REDIS_REST_URL!
   }) : true;
 
 const openaiModel = new ChatOpenAI({
-  modelName: "gpt-4-0125-preview",
+  modelName: "gpt-4o",
   temperature: 0.2,
   openAIApiKey: process.env.OPENAI_API_KEY, // In Node.js defaults to process.env.OPENAI_API_KEY
   // verbose: true,
