@@ -11,12 +11,16 @@ export default async function handler(
 ) {
   try {
     const q = req.query.resolvedQa as string;
-    if (!q) {
-      return res.status(400).json({
-        response: 'resolvedQa is required'
+
+    if (req.method === "POST") {
+      const response = await buildMindMap({
+        resolvedQa: req.body.resolvedQa,
+        existingMindMap: req.body.existingMindMap,
+      })
+      return res.status(200).json({
+        response,
       })
     }
-
     const response = await buildMindMap({
       resolvedQa: q,
     })

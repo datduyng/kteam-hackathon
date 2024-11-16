@@ -149,7 +149,8 @@ to create a presentation outlines on the topic given by following user input. Th
 });
 
 export const buildMindMap = async (input: {
-  resolvedQa: string
+  resolvedQa: string;
+  existingMindMap?: string;
 }) => {
   const mindMapResposne = await model.invoke(`
 You are tasked with generating Markdown code to create mind maps in Mermaid. 
@@ -162,6 +163,7 @@ You will take a list of topics and subtopics provided to you and return a well-s
 4. Don't include \`\`\`
 5. Try to have more than 12 topics in the mindmap
 6. Make it clear and avoid having too detailed topics
+7. Don't add spaces at the end of the lines i.e "mindmap\n" instead of "mindmap \n"
 
 Example output mindmap:
 mindmap
@@ -172,6 +174,11 @@ mindmap
     Design
       UI/UX
       Graphic Design
+
+${input.existingMindMap
+      ? `Below is user previous generated mindmap(from a personalized quiz. You are expected to generate a mindmap based on this input. The new mindmap should keep the existing mindmap structure and add new topics based on the user input): \n${input.existingMindMap}`
+      : null
+    }
 
 Below is user input(from a personalized quiz. You are expected to generate a mindmap based on this input):
 ${input.resolvedQa}

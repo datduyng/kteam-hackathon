@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TopicDialog } from "@/components/topic-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { resolve } from "path";
 
 export default function LearnPage() {
 
@@ -93,7 +94,7 @@ export default function LearnPage() {
 
   return <>
     <main className="flex flex-col items-center">
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-7xl">
         {
           quizStep === 0 && <>
             <Card className="mx-auto mt-20 w-full max-w-md">
@@ -215,11 +216,37 @@ export default function LearnPage() {
               onSubmitQuiz={(resolvedQA: string) => {
                 console.log('Resolved QA:', resolvedQA);
                 setSubmissions(submissions + 1)
+                fetch(`/api/get-mindmap?resolvedQa=${resolvedQA}&existingMindMap=${resolvedMindMap}`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    resolvedQa: resolvedQA,
+                    existingMindMap: resolvedMindMap,
+                  }),
+                })
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.response) {
+                      console.log('Resolved MindMap:\n', data.response?.trim());
+                      setResolvedMindMap(data.response?.trim());
+                      setQuizStep(2);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                    toast({
+                      title: "Error when Personalizing your learning path...",
+                      duration: 3000,
+                    })
+                  });
                 toast({
-                  title: "Quiz submitted successfully!",
+                  title: "Quiz submitted successfully! Redesigning your learning path...",
                   duration: 3000,
                 })
                 setDialogShow(false)
+
               }}
               show={dialogShow}
               setShow={setDialogShow} />
