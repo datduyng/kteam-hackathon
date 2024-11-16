@@ -26,7 +26,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <CopilotSidebar
         defaultOpen={false}
         labels={{
-          title: 'BrainBite - Your Personal Learning Assistant',
+          title: 'CurveAI - Your Personal Learning Assistant',
           // title: "You are a book recommender expert. Helping student learn things faster. You only know about books and help students to find the right book for them. You can also help them to understand the book better.",
           initial: "Hi! 👋 Ask me any question about learning material on the left",
         }}
