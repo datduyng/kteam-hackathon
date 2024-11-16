@@ -37,6 +37,9 @@ mindmap
   const [firstQuestions, setFirstQuestions] = useState([]);
   const [topicInput, setTopicInput] = useState('');
 
+  const [resolvedQA, setResolvedQA] = useState('');
+  const [resolvedMindMap, setResolvedMindMap] = useState('');
+
   return <>
     <main className="flex flex-col items-center">
       <div className="w-full max-w-5xl">
@@ -85,6 +88,23 @@ mindmap
               questions={firstQuestions}
               onSubmit={(resolvedQA: string) => {
                 console.log('Resolved QA:', resolvedQA);
+                setResolvedQA(resolvedQA);
+                fetch(`/api/get-mindmap?resolvedQa=${resolvedQA}`)
+                  .then((res) => res.json())
+                  .then((data) => {
+                    if (data.response) {
+                      console.log('Resolved MindMap:\n', data.response?.trim());
+                      setResolvedMindMap(data.response?.trim());
+                      setQuizStep(2);
+                    }
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                    toast({
+                      title: "Error when Personalizing your learning path...",
+                      duration: 3000,
+                    })
+                  });
                 setQuizStep(2);
               }} />
           </>
@@ -98,7 +118,7 @@ mindmap
               Back
             </Button>
             <MermaidWithPopup
-              content={content}
+              content={resolvedMindMap}
               onTopicClick={(newTopic) => {
                 setDialogShow(true);
                 setTopic(newTopic);

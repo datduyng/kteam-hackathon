@@ -1,57 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import mermaid from 'mermaid';
-import { on } from 'events';
 
 const MermaidWithPopup = ({
   content,
   onTopicClick,
-}: {
-  content: string;
-  onTopicClick: (topic: string) => void;
 }) => {
-  const [diagramDefinition, setDiagramDefinition] = useState(content);
-
   const [popup, setPopup] = useState({ show: false, title: '', content: '' });
 
+  // Memoize handleNodeClick to prevent unnecessary re-renders
+  const handleNodeClick = useCallback(
+    (id) => {
+      console.log('Node clicked:', id);
+      // setPopup({ show: true, title: id, content: 'This is a decision point.' });
+      onTopicClick(id);
+    },
+    [onTopicClick]
+  );
+
+  // Initialize Mermaid only once
   useEffect(() => {
-    const run = async () => {
-      // Initialize Mermaid
-      mermaid.initialize({ startOnLoad: true, securityLevel: 'loose', look: 'handDrawn' });
-      // Bind the node click handler to window for Mermaid to call
-      window.nodeClickHandler = (id) => {
-        handleNodeClick(id);
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' });
+
+    // Bind the node click handler to window for Mermaid to call
+    window.nodeClickHandler = (id) => {
+      handleNodeClick(id);
+    };
+  }, [handleNodeClick]);
+
+  // Render Mermaid diagram when content changes
+  useEffect(() => {
+    if (content) {
+      const renderMermaid = async () => {
+        try {
+          const { svg } = await mermaid.render('mermaid-svg', content);
+          document.getElementById('mermaid-container').innerHTML = svg;
+
+          // Add click event listeners to nodes
+          const nodes = document.querySelectorAll('.mindmap-node');
+          nodes.forEach((node) => {
+            node.addEventListener('click', nodeClickHandler);
+          });
+        } catch (error) {
+          console.error('Error rendering Mermaid diagram:', error);
+        }
       };
 
-      // Trigger re-rendering of Mermaid
-      mermaid.contentLoaded();
+      renderMermaid();
 
-      setTimeout(() => {
-        // query all mindmap-node class elements to add click event
+      // Cleanup function to remove event listeners
+      return () => {
         const nodes = document.querySelectorAll('.mindmap-node');
         nodes.forEach((node) => {
-          node.addEventListener('click', (e) => {
-            const textNode = e.target.closest('text');
-            const textContent = textNode ? textNode.textContent : '';
-            window.nodeClickHandler(textContent);
-          });
+          node.removeEventListener('click', nodeClickHandler);
         });
-      }, 1000);
+      };
     }
-    run().then().catch(() => {
+  }, [content]);
 
-    });
-
-  }, [diagramDefinition]);
-
-  const handleNodeClick = (id: string) => {
-    console.log('Node clicked:', id);
-    setPopup({ show: true, title: id, content: 'This is a decision point.' });
-    onTopicClick(id);
+  // Ensure nodeClickHandler is accessible
+  const nodeClickHandler = (e) => {
+    const textNode = e.target.closest('text');
+    const textContent = textNode ? textNode.textContent : '';
+    window.nodeClickHandler(textContent);
   };
 
   return (
     <div>
-      <div className="mermaid">{diagramDefinition}</div>
+      <div id="mermaid-container"></div>
+      {popup.show && (
+        <div className="popup">
+          <h2>{popup.title}</h2>
+          <p>{popup.content}</p>
+        </div>
+      )}
     </div>
   );
 };
