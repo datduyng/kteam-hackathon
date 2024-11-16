@@ -20,6 +20,7 @@ export function TopicDialog({
   topic,
   carouselItems,
   quizQuestions,
+  onSubmitQuiz,
 }: {
   refreshQuiz: () => void
   topic: string;
@@ -27,6 +28,7 @@ export function TopicDialog({
   setShow: (show: boolean) => void
   carouselItems: any
   quizQuestions: any
+  onSubmitQuiz: (resolvedQA: string) => void
 }) {
   console.log('dialog', topic)
   return (
@@ -50,7 +52,9 @@ export function TopicDialog({
             <Button variant={"outline"} onClick={() => {
               refreshQuiz();
             }}>🔄 Refresh Quiz</Button>
-            <Quiz questions={quizQuestions} />
+            <Quiz
+              onSubmit={onSubmitQuiz}
+              questions={quizQuestions} />
           </>
         }
         <DialogFooter>

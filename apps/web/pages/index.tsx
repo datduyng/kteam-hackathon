@@ -6,13 +6,12 @@ import { event } from '@/lib/telemetry-client';
 import { toast } from "@/components/ui/use-toast";
 import { useMakeCopilotReadable } from "@copilotkit/react-core";
 import MermaidDiagram, { MermaidWithPopup } from "@/components/MindMap";
-import Quiz from "@/components/quiz";
 import { FirstQuiz } from "@/components/first-quiz";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { TopicDialog } from "@/components/topic-dialog";
-import { set } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function LearnPage() {
 
@@ -20,19 +19,6 @@ export default function LearnPage() {
 
   const [dialogShow, setDialogShow] = useState(false);
   const [topic, setTopic] = useState('');
-  const content = `
-mindmap
-  root(Learning Paths)
-    Programming
-      Python
-      JavaScript
-    click Programming nodeClickHandler;
-    Design
-      UI/UX
-      Graphic Design
-
-
-`.trim();
 
   const [firstQuestions, setFirstQuestions] = useState([]);
   const [quizQuestions, setQuizQuestions] = useState([]);
@@ -103,41 +89,57 @@ mindmap
       setIsLoading(false);
     }
   };
+  const [submissions, setSubmissions] = useState(0)
 
   return <>
     <main className="flex flex-col items-center">
       <div className="w-full max-w-5xl">
         {
           quizStep === 0 && <>
-            <Label>What do you want to learn</Label>
-            <Input placeholder="Enter your name"
-              value={topicInput}
-              onChange={(e) => {
-                setTopicInput(e.target.value);
-              }}
-            />
-            <Button onClick={() => {
-              toast({
-                title: "Personalizing your learning path...",
-                duration: 3000,
-              })
-              fetch(`/api/get-first-quiz?q=${topicInput}`)
-                .then((res) => res.json())
-                .then((data) => {
-                  if (data.response) {
-                    setFirstQuestions(data.response);
-                    setQuizStep(1);
-                  }
-                })
-                .catch((err) => {
-                  console.error(err);
-                  toast({
-                    title: "Error when Personalizing your learning path...",
-                    duration: 3000,
-                  })
-                });
-              setQuizStep(1);
-            }}>Submit</Button>
+            <Card className="mx-auto mt-20 w-full max-w-md">
+              <CardHeader>
+                <CardTitle>What do you want to learn?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="topic">Topic</Label>
+                    <Input
+                      id="topic"
+                      placeholder="Enter a topic"
+                      value={topicInput}
+                      onChange={(e) => setTopicInput(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Personalizing your learning path...",
+                        duration: 3000,
+                      })
+                      fetch(`/api/get-first-quiz?q=${topicInput}`)
+                        .then((res) => res.json())
+                        .then((data) => {
+                          if (data.response) {
+                            setFirstQuestions(data.response)
+                            setQuizStep(1)
+                          }
+                        })
+                        .catch((err) => {
+                          console.error(err)
+                          toast({
+                            title: "Error when Personalizing your learning path...",
+                            duration: 3000,
+                          })
+                        })
+                    }}
+                  >
+                    Submit
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </>
         }
 
@@ -176,29 +178,43 @@ mindmap
 
         {
           quizStep === 2 && <>
-            <Button variant={"outline"} onClick={() => {
-              setQuizStep(1);
-            }}>
+            <Button variant="outline" onClick={() => setQuizStep(1)} className="mb-4">
               Back
             </Button>
-            <MermaidWithPopup
-              content={resolvedMindMap}
-              onTopicClick={async (newTopic: string) => {
-                setDialogShow(true);
-                setTopic(newTopic);
-                setCarouselItems([]);
-                setQuizQuestions([]);
-                const carouselItems = await fetchCarouselItems({ query: newTopic })
-                await fetchTopicQuiz({ topic: newTopic, carouselItems });
-              }}
-            />
-
+            <div className="flex">
+              <div className="flex-grow">
+                <MermaidWithPopup
+                  content={resolvedMindMap}
+                  onTopicClick={async (newTopic: string) => {
+                    setDialogShow(true)
+                    setTopic(newTopic)
+                    setCarouselItems([])
+                    setQuizQuestions([])
+                    const carouselItems = await fetchCarouselItems({ query: newTopic })
+                    await fetchTopicQuiz({ topic: newTopic, carouselItems })
+                    setSubmissions(submissions + 1)
+                  }}
+                />
+              </div>
+              <Card className="ml-4 w-64 h-fit">
+                <CardHeader>
+                  <CardTitle>Scoreboard</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>Submissions: {submissions}/17 Lessons</p>
+                </CardContent>
+              </Card>
+            </div>
             <TopicDialog
               carouselItems={carouselItems}
               quizQuestions={quizQuestions}
               topic={topic}
               refreshQuiz={() => {
                 fetchTopicQuiz({ topic, carouselItems }).then().catch(console.error);
+              }}
+              onSubmitQuiz={(resolvedQA: string) => {
+                console.log('Resolved QA:', resolvedQA);
+                setSubmissions(submissions + 1)
               }}
               show={dialogShow}
               setShow={setDialogShow} />
@@ -209,36 +225,3 @@ mindmap
     </main>
   </>
 }
-
-// const MermaidChart = ({ chart }) => {
-//   useEffect(() => {
-//     const loadMermaid = async () => {
-//       if (!window.mermaid) {
-//         const script = document.createElement('script');
-//         script.src = 'https://cdn.jsdelivr.net/npm/mermaid@9/dist/mermaid.min.js';
-//         script.onload = () => {
-//           window.mermaid.initialize({ startOnLoad: true, security: 'loose'});
-//           window.mermaid.contentLoaded();
-//         };
-//         document.body.appendChild(script);
-//       } else {
-//         window.mermaid.contentLoaded();
-//       }
-//     };
-
-//     loadMermaid();
-//   }, [chart]);
-
-//   return <div className="mermaid">{chart}</div>;
-// };
-
-// const Flowchart = () => {
-//   const diagram = `
-//     graph TD;
-//     A[Start] --> B{Decision};
-//     B -->|Yes| C[Proceed];
-//     B -->|No| D[Stop];
-//   `;
-
-//   return <MermaidChart chart={diagram} />;
-// };

@@ -6,6 +6,7 @@ import { zodToJsonSchema } from "./zod-to-json";
 import { z } from "zod";
 import { imageSearch } from "./services/search";
 import { UpstashRedisCache } from "@langchain/community/caches/upstash_redis";
+import { ChatAnthropic } from "@langchain/anthropic";
 
 const cache = process.env.UPSTASH_REDIS_REST_URL!
   ? new UpstashRedisCache({ // use this to save openai money. DOM local testing only
@@ -23,7 +24,16 @@ const openaiModel = new ChatOpenAI({
   cache,
 });
 
-const model = openaiModel
+const claudeModel = new ChatAnthropic({
+  model: "claude-3-5-sonnet-20240620",
+  temperature: 0,
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  maxTokens: undefined,
+  maxRetries: 2,
+  cache,
+});
+
+const model = openaiModel;
 
 const mindmapSchema = z.object({
   mindmapLessonPlan: z.string({
@@ -150,6 +160,8 @@ You will take a list of topics and subtopics provided to you and return a well-s
 2. Indentation and formatting must follow Mermaid's syntax rules for mind maps.
 3. Each node will consist of a topic name only.
 4. Don't include \`\`\`
+5. Try to have more than 12 topics in the mindmap
+6. Make it clear and avoid having too detailed topics
 
 Example output mindmap:
 mindmap
