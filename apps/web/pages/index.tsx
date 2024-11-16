@@ -106,6 +106,7 @@ export default function LearnPage() {
                   <div className="space-y-2">
                     <Label htmlFor="topic">Topic</Label>
                     <Input
+                      type="text"
                       id="topic"
                       placeholder="Enter a topic"
                       value={topicInput}
