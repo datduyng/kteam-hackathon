@@ -13,6 +13,7 @@ interface QuizQuestion {
 
 interface QuizProps {
   questions: QuizQuestion[];
+  onSubmit?: () => void;
 }
 
 export default function Quiz({ questions = [
@@ -25,7 +26,7 @@ export default function Quiz({ questions = [
     answers: ["A. useState", "B. useEffect", "C. useContext", "D. useReactState"]
   },
   // Add more questions as needed
-] }: QuizProps) {
+], onSubmit, }: QuizProps) {
   // Error handling for empty questions array
   if (questions.length === 0) {
     return <div className="p-4 text-center">No questions available.</div>
@@ -41,6 +42,9 @@ export default function Quiz({ questions = [
 
   const handleSubmit = () => {
     console.log('Submitted answers:', selectedAnswers)
+    if (onSubmit) {
+      onSubmit()
+    }
     // Here you can add logic to check answers or send them to a server
   }
 
