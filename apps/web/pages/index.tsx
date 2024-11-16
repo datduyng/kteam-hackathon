@@ -40,6 +40,36 @@ mindmap
   const [resolvedQA, setResolvedQA] = useState('');
   const [resolvedMindMap, setResolvedMindMap] = useState('');
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [carouselItems, setCarouselItems] = useState([]);
+  const fetchCarouselItems = async (input: {
+    query: string;
+  }) => {
+    setIsLoading(true);
+    try {
+      toast({
+        title: "Loading topic details content...",
+        duration: 3000,
+      })
+      const response = await fetch(`/api/build-lesson`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch carousel items');
+      }
+      const data = await response.json();
+      setCarouselItems(data.response);
+    } catch (error) {
+      console.error('Failed to fetch carousel items:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return <>
     <main className="flex flex-col items-center">
       <div className="w-full max-w-5xl">
@@ -119,12 +149,15 @@ mindmap
             </Button>
             <MermaidWithPopup
               content={resolvedMindMap}
-              onTopicClick={(newTopic) => {
+              onTopicClick={async (newTopic) => {
                 setDialogShow(true);
                 setTopic(newTopic);
+                setCarouselItems([]);
+                await fetchCarouselItems({ query: newTopic })
               }}
             />
-            <TopicDialog topic={topic} show={dialogShow} setShow={setDialogShow} />
+
+            <TopicDialog carouselItems={carouselItems} topic={topic} show={dialogShow} setShow={setDialogShow} />
           </>
         }
 

@@ -206,7 +206,7 @@ export const buildLessonPlan = async (input: {
   console.info('Building outlines for', input);
   const outlineResponse = await outlineEngine.invoke({
     input: `${input.query}
-${Object.entries(input.answers).map(([key, value]) => `${key} ${value}`).join('\n')}`,
+${input.answers ? Object.entries(input?.answers).map(([key, value]) => `${key} ${value}`).join('\n') : null}`,
   });
   console.info('outlineResponse');
 

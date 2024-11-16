@@ -10,15 +10,18 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LearnCarousel } from "@/pages/brainbite";
 
 export function TopicDialog({
   show,
   setShow,
   topic,
+  carouselItems,
 }: {
   topic: string;
   show: boolean
   setShow: (show: boolean) => void
+  carouselItems: any
 }) {
   console.log('dialog', topic)
   return (
@@ -36,20 +39,7 @@ export function TopicDialog({
             Make changes to your profile here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 gap-4 items-center">
-            <Label htmlFor="name" className="text-right">
-              Name
-            </Label>
-            <Input id="name" value="Pedro Duarte" className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 gap-4 items-center">
-            <Label htmlFor="username" className="text-right">
-              Username
-            </Label>
-            <Input id="username" value="@peduarte" className="col-span-3" />
-          </div>
-        </div>
+        <LearnCarousel carouselItems={carouselItems} />
         <DialogFooter>
           <Button type="submit">Save changes</Button>
         </DialogFooter>
